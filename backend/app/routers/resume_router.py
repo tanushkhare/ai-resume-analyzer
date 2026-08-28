@@ -6,15 +6,8 @@ router = APIRouter(prefix="/api/v1/resume", tags=["Resume NLP Analyzer"])
 
 @router.post("/analyze", response_model=ResumeAnalysisResponse)
 async def analyze_resume(file: UploadFile = File(...)):
-    if not file.filename.lower().endswith((".pdf", ".docx", ".txt")):
-        raise HTTPException(status_code=400, detail="Unsupported file format. Please upload PDF or DOCX.")
-    
     file_bytes = await file.read()
     raw_text = parser_service.extract_text_from_stream(file_bytes, file.filename)
-    
-    if len(raw_text.strip()) < 20:
-        raise HTTPException(status_code=422, detail="Document text extraction yielded insufficient content.")
-    
     analysis = parser_service.analyze_skills(raw_text)
     
     return ResumeAnalysisResponse(

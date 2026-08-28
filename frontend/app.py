@@ -1,7 +1,5 @@
 ﻿import streamlit as st
 import requests
-import plotly.express as px
-import pandas as pd
 
 st.set_page_config(page_title="AI Resume & Skill Gap Analyzer", layout="wide")
 
@@ -19,16 +17,15 @@ if uploaded_file is not None:
         
         if st.button("Run NLP Extraction Pipeline", type="primary"):
             with st.spinner("Parsing document stream and extracting entities..."):
-                files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "text/plain")}
                 try:
                     res = requests.post("http://localhost:8000/api/v1/resume/analyze", files=files, timeout=10)
                     if res.status_code == 200:
-                        data = res.json()
-                        st.session_state["resume_data"] = data
+                        st.session_state["resume_data"] = res.json()
                         st.success("Resume Parsed Successfully!")
                     else:
                         st.error(f"Extraction Error: {res.text}")
-                except requests.exceptions.RequestException:
+                except Exception:
                     st.warning("Backend API offline. Running local client-side extraction simulation.")
                     st.session_state["resume_data"] = {
                         "filename": uploaded_file.name,
